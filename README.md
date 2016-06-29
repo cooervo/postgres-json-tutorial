@@ -183,3 +183,6 @@ Output:
 Output:
 
 ![enter image description here](http://i.imgur.com/RfVELht.png)
+
+### Additional `JSONb`Operators:
+![Imgur](http://i.imgur.com/rwPJ473.png)
