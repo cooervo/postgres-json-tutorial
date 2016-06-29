@@ -28,6 +28,7 @@ Lets see everything inside the table books:
 	SELECT * FROM books;
 
 Output:
+
 ![](http://i.imgur.com/T26elII.png)
 
 ### `->` operator returns values out of JSON columns
@@ -39,6 +40,7 @@ Selecting 1 column:
 	    FROM books;
 	    
 Output:
+
 ![enter image description here](http://i.imgur.com/Pab2puE.png)
 
 Selecting 2 columns:
@@ -47,7 +49,8 @@ Selecting 2 columns:
 	   data->'title' AS title, data->'author' AS author
 	   FROM books;
 	   
-Output:	   
+Output:	
+
 ![enter image description here](http://i.imgur.com/fWHUsre.png)
 
 ### `->` vs `->>` 
@@ -60,7 +63,8 @@ You can use the `->` to return a nested object and thus chain the operators:
 	   data->'author'->'last_name' AS author
 	   FROM books;
 	   	   
-Output:	  
+Output:
+
 ![enter image description here](http://i.imgur.com/NgSPIFU.png)
 
 ### Filtering
@@ -77,6 +81,7 @@ Notice WHERE uses `->` so we must compare to JSON `'"Dharma Bums"'`
 Or we could use `->>` and compare to `'Dharma Bums'`
 
 Output:
+
 ![enter image description here](http://i.imgur.com/2seaUNK.png)
 
 ### Nested filtering
@@ -89,6 +94,7 @@ Find rows based on the value of a nested JSON object:
 	  WHERE data->'author'->>'last_name' = 'Kerouac';
 
 Output:
+
 ![enter image description here](http://i.imgur.com/yeBMj0T.png)
 
 ### A real world example
@@ -139,6 +145,7 @@ Now lets select everything:
 	SELECT * FROM events;
 	
 Output: 
+
 ![enter image description here](http://i.imgur.com/b5Hw0NN.png)
 
 ### JSON operators + PostgreSQL aggregate functions
@@ -153,6 +160,7 @@ Using the JSON operators, combined with traditional PostgreSQL aggregate functio
 		  GROUP BY browser->>'name';
 
 Output:
+
 ![enter image description here](http://i.imgur.com/jvw6bz7.png)
 
 * Total revenue per visitor:
@@ -161,6 +169,9 @@ Output:
 		FROM events
 		WHERE CAST(properties->>'amount' AS integer) > 0
 		GROUP BY visitor_id;
+
+Output:
+
 ![enter image description here](http://i.imgur.com/6cOnNl9.png)
 
 * Average screen resolution
@@ -168,5 +179,7 @@ Output:
 		SELECT AVG(CAST(browser->'resolution'->>'x' AS integer)) AS width,
 		  AVG(CAST(browser->'resolution'->>'y' AS integer)) AS height
 		FROM events;
-	
+
+Output:
+
 ![enter image description here](http://i.imgur.com/RfVELht.png)
