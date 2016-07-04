@@ -85,6 +85,7 @@ For read and write:
 ### List all access privileges to tables
 
 \z
+
 	                                     Access privileges
 	 Schema |      Name       |   Type   |     Access privileges     | Column access privileges
 	--------+-----------------+----------+---------------------------+--------------------------
@@ -141,10 +142,10 @@ Connect privileges:
 
 For read only:
 
-	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES to app_ro;
-	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES to app_ro;
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES to user_ro;
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES to user_ro;
 	
 For read and write:
 
-	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE, INSERT, DELETE ON TABLES TO app_rw;
-	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE ON SEQUENCES to app_rw;
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE, INSERT, DELETE ON TABLES TO user_rw;
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE ON SEQUENCES to user_rw;
