@@ -6,26 +6,28 @@
 ### Create Read Only and Read Write users
 
 read only:
-CREATE USER app_ro WITH PASSWORD 'myPassword';
+
+	CREATE USER app_ro WITH PASSWORD 'myPassword';
 
 read & write:
-CREATE USER app_rw WITH PASSWORD 'myPassword';
+
+	CREATE USER app_rw WITH PASSWORD 'myPassword';
 
 ### To ALTER users (change password)
-ALTER USER app_rw WITH PASSWORD 'myNewPassword';
+
+	ALTER USER app_rw WITH PASSWORD 'myNewPassword';
 
 ### Create a DB:
-CREATE DATABASE myapp;
+
+	CREATE DATABASE myapp;
 
 ### Connect to DB:
-\c myapp
 
-### Now we can revoke permissions and privileges
-REVOKE ALL ON DATABASE myapp FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
+	\c myapp
 
-### List roles 
-\du
+### List Roles 
+
+	\du
 
 Output:
                              List of roles
@@ -38,14 +40,17 @@ Output:
 
 ### Grant permissions
 
-Here we are saying that user app_ro has permission to connect to myapp DB
-GRANT CONNECT ON DATABASE myapp to app_ro;
+Here we are saying that user app_ro has permission to connect to myapp DB:
 
-Now the same for user app_rw
-GRANT CONNECT ON DATABASE myapp to app_rw;
+	GRANT CONNECT ON DATABASE myapp to app_ro;
+
+Now the same for user app_rw:
+
+	GRANT CONNECT ON DATABASE myapp to app_rw;
 
 ### List all Databases
-\l
+
+	\l
 Output:
 
                                   List of databases
@@ -61,21 +66,21 @@ Output:
            |          |          |             |             | postgres=CTc/postgres
 
 		   
-### Create a table
-CREATE TABLE test_2(id serial, name varchar(40));
 
-### Lets alter DEFAULT privileges to roles app_ro & app_rw so they can write or read
-Lets change roles default privileges for all tables (new or old ones).
+### Alter DEFAULT privileges to roles app_ro & app_rw so they can write or read
+
+Change roles default privileges for all tables (new or old ones).
 
 For read only:
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES to app_ro;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES to app_ro;
+
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES to app_ro;
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES to app_ro;
 
 For read and write:
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE, INSERT, DELETE ON TABLES TO app_rw;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE ON SEQUENCES to app_rw;
 
-CREATE TABLE test_new(id serial, name varchar(40));
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE, INSERT, DELETE ON TABLES TO app_rw;
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE ON SEQUENCES to app_rw;
+
 ### List all access privileges to tables
 
 \z
@@ -91,16 +96,19 @@ CREATE TABLE test_new(id serial, name varchar(40));
         |                 |          | app_ro=r/postgres        +|
         |                 |          | app_rw=rw/postgres        |
 
-Notice 	
-app_ro=r //means app_ro can only read  
-app_rw=rw //means it can read and write	
+Notice
+	
+	app_ro=r //means app_ro can only read  
+	app_rw=rw //means it can read and write	
 
 
 ### To quit
-\q
+
+	\q
 
 ### Connect to myapp DB with role app_ro
-psql -h localhost -U app_ro myapp
+
+	psql -h localhost -U app_ro myapp
 
 
 
