@@ -1,188 +1,106 @@
-### Creating the DB and  the Table
-    DROP DATABASE IF EXISTS books_db;
-    CREATE DATABASE books_db WITH ENCODING='UTF8' TEMPLATE template0;
-    
-    DROP TABLE IF EXISTS books;
-    
-    CREATE TABLE books (
-      id SERIAL PRIMARY KEY,
-      client VARCHAR NOT NULL,
-      data JSONb NOT NULL
-    );
+### Sudo to postgres user
+`sudo su postgres`
 
-###Populating the DB
-    INSERT INTO books(client, data) 
-     values(
-       'Joe', 
-        '{ "title": "Siddhartha", "author": { "first_name": "Herman", "last_name": "Hesse" } }'
-     );
-    INSERT INTO books(client, data) 
-    	values('Jenny', 
-    	'{ "title": "Dharma Bums", "author": { "first_name": "Jack", "last_name": "Kerouac" } }');
-    INSERT INTO books(client, data) 
-    	values('Jenny', 
-    	'{ "title": "100 años de soledad", "author": { "first_name": "Gabo", "last_name": "Marquéz" } }');
+`psql -d postgres -U postgres`
 
-Lets see everything inside the table books:
+### Create Read Only and Read Write users
 
-	SELECT * FROM books;
+read only:
+CREATE USER app_ro WITH PASSWORD 'myPassword';
 
-Output:
+read & write:
+CREATE USER app_rw WITH PASSWORD 'myPassword';
 
-![](http://i.imgur.com/T26elII.png)
+### To ALTER users (change password)
+ALTER USER app_rw WITH PASSWORD 'myNewPassword';
 
-### `->` operator returns values out of JSON columns
+### Create a DB:
+CREATE DATABASE myapp;
 
-Selecting 1 column:
+### Connect to DB:
+\c myapp
 
-    SELECT client, 
-	    data->'title' AS title
-	    FROM books;
-	    
-Output:
+### Now we can revoke permissions and privileges
+REVOKE ALL ON DATABASE myapp FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
 
-![enter image description here](http://i.imgur.com/Pab2puE.png)
-
-Selecting 2 columns:
-
-	SELECT client, 
-	   data->'title' AS title, data->'author' AS author
-	   FROM books;
-	   
-Output:	
-
-![enter image description here](http://i.imgur.com/fWHUsre.png)
-
-### `->` vs `->>` 
-The `->` operator returns the original JSON type (which might be an object), whereas `->>` returns text. 
-
-### Return NESTED objects
-You can use the `->` to return a nested object and thus chain the operators:
-
-	SELECT client, 
-	   data->'author'->'last_name' AS author
-	   FROM books;
-	   	   
-Output:
-
-![enter image description here](http://i.imgur.com/NgSPIFU.png)
-
-### Filtering
- Select rows based on a value inside your JSON:
- 
-	 SELECT 
-	 client,
-	 data->'title' AS title
-	 FROM books
-	  WHERE data->'title' = '"Dharma Bums"';
-
-Notice WHERE uses `->` so we must compare to JSON `'"Dharma Bums"'`
-
-Or we could use `->>` and compare to `'Dharma Bums'`
+### List roles 
+\du
 
 Output:
+                             List of roles
+ Role name |                   Attributes                   | Member of
+-----------+------------------------------------------------+-----------
+ app_ro    |                                                | {}
+ app_rw    |                                                | {}
+ postgres  | Superuser, Create role, Create DB, Replication | {}
 
-![enter image description here](http://i.imgur.com/2seaUNK.png)
 
-### Nested filtering
-Find rows based on the value of a nested JSON object:
+### Grant permissions
 
-	SELECT 
-	 client,
-	 data->'title' AS title
-	 FROM books
-	  WHERE data->'author'->>'last_name' = 'Kerouac';
+Here we are saying that user app_ro has permission to connect to myapp DB
+GRANT CONNECT ON DATABASE myapp to app_ro;
 
+Now the same for user app_rw
+GRANT CONNECT ON DATABASE myapp to app_rw;
+
+### List all Databases
+\l
 Output:
 
-![enter image description here](http://i.imgur.com/yeBMj0T.png)
+                                  List of databases
+   Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges
+-----------+----------+----------+-------------+-------------+-----------------------
+ myapp     | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | postgres=CTc/postgres+
+           |          |          |             |             | app_ro=c/postgres    +
+           |          |          |             |             | app_rw=c/postgres
+ postgres  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ template0 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |          |          |             |             | postgres=CTc/postgres
+ template1 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |          |          |             |             | postgres=CTc/postgres
 
-### A real world example
+		   
+### Create a table
+CREATE TABLE test_2(id serial, name varchar(40));
 
-	CREATE TABLE events (
-	  name varchar(200),
-	  visitor_id varchar(200),
-	  properties json,
-	  browser json
-	);
-	
-We’re going to store events in this table, like pageviews. Each event has properties, which could be anything (e.g. current page) and also sends information about the browser (like OS, screen resolution, etc). Both of these are completely free form and could change over time (as we think of extra stuff to track).
+### Lets alter DEFAULT privileges to roles app_ro & app_rw so they can write or read
+Lets change roles default privileges for all tables (new or old ones).
+
+For read only:
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES to app_ro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES to app_ro;
+
+For read and write:
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE, INSERT, DELETE ON TABLES TO app_rw;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, UPDATE ON SEQUENCES to app_rw;
+
+CREATE TABLE test_new(id serial, name varchar(40));
+### List all access privileges to tables
+
+\z
+                                     Access privileges
+ Schema |      Name       |   Type   |     Access privileges     | Column access privileges
+--------+-----------------+----------+---------------------------+--------------------------
+ public | test_2          | table    |                           |
+ public | test_2_id_seq   | sequence |                           |
+ public | test_new        | table    | postgres=arwdDxt/postgres+|
+        |                 |          | app_ro=r/postgres        +|
+        |                 |          | app_rw=arwd/postgres      |
+ public | test_new_id_seq | sequence | postgres=rwU/postgres    +|
+        |                 |          | app_ro=r/postgres        +|
+        |                 |          | app_rw=rw/postgres        |
+
+Notice 	
+app_ro=r //means app_ro can only read  
+app_rw=rw //means it can read and write	
 
 
-	INSERT INTO events VALUES (
-	  'pageview', '1',
-	  '{ "page": "/" }',
-	  '{ "name": "Chrome", "os": "Mac", "resolution": { "x": 1440, "y": 900 } }'
-	);
-	INSERT INTO events VALUES (
-	  'pageview', '2',
-	  '{ "page": "/" }',
-	  '{ "name": "Firefox", "os": "Windows", "resolution": { "x": 1920, "y": 1200 } }'
-	);
-	INSERT INTO events VALUES (
-	  'pageview', '1',
-	  '{ "page": "/account" }',
-	  '{ "name": "Chrome", "os": "Mac", "resolution": { "x": 1440, "y": 900 } }'
-	);
-	INSERT INTO events VALUES (
-	  'purchase', '5',
-	  '{ "amount": 10 }',
-	  '{ "name": "Firefox", "os": "Windows", "resolution": { "x": 1024, "y": 768 } }'
-	);
-	INSERT INTO events VALUES (
-	  'purchase', '15',
-	  '{ "amount": 200 }',
-	  '{ "name": "Firefox", "os": "Windows", "resolution": { "x": 1280, "y": 800 } }'
-	);
-	INSERT INTO events VALUES (
-	  'purchase', '15',
-	  '{ "amount": 500 }',
-	  '{ "name": "Firefox", "os": "Windows", "resolution": { "x": 1280, "y": 800 } }'
-	);
+### To quit
+\q
 
-Now lets select everything:
+### Connect to myapp DB with role app_ro
+psql -h localhost -U app_ro myapp
 
-	SELECT * FROM events;
-	
-Output: 
 
-![enter image description here](http://i.imgur.com/b5Hw0NN.png)
 
-### JSON operators + PostgreSQL aggregate functions
-
-Using the JSON operators, combined with traditional PostgreSQL aggregate functions, we can pull out whatever we want. You have the full might of an RDBMS at your disposal.
-
-* Lets see browser usage: 
-
-		SELECT browser->>'name' AS browser, 
-		  count(browser)
-		  FROM events
-		  GROUP BY browser->>'name';
-
-Output:
-
-![enter image description here](http://i.imgur.com/jvw6bz7.png)
-
-* Total revenue per visitor:
-	
-		SELECT visitor_id, SUM(CAST(properties->>'amount' AS integer)) AS total
-		FROM events
-		WHERE CAST(properties->>'amount' AS integer) > 0
-		GROUP BY visitor_id;
-
-Output:
-
-![enter image description here](http://i.imgur.com/6cOnNl9.png)
-
-* Average screen resolution
-
-		SELECT AVG(CAST(browser->'resolution'->>'x' AS integer)) AS width,
-		  AVG(CAST(browser->'resolution'->>'y' AS integer)) AS height
-		FROM events;
-
-Output:
-
-![enter image description here](http://i.imgur.com/RfVELht.png)
-
-### Additional `JSONb`Operators:
-![Imgur](http://i.imgur.com/rwPJ473.png)
