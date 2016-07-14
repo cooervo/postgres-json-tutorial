@@ -115,6 +115,7 @@ Notice
 
 
 # Running an example
+
 1. ssh into VPS:
 		
 		ssh root@my-domain.com
@@ -125,6 +126,8 @@ Notice
  
 3. From `user_x@home$` in linux open `nano script.sql`
 
+  If user has been created before:
+   `sudo -i -u user_name`
 
 4. Run the script: 
 
