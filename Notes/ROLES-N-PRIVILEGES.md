@@ -133,7 +133,10 @@ Notice
 
 		psql -d database_x -f script.sql
 
-5. Back to `root@home`:
+5. Back to UNIX root:
+  `exit`
+
+6. At `root@home`:
 
 		sudo API_KEY=api-fizz-buzz  forever start server.js
 
